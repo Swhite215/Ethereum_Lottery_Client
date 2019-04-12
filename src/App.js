@@ -14,7 +14,11 @@ class App extends Component {
             value: "",
             message: ""
         };
+
+        this.onSubmit = this.onSubmit.bind(this);
+        this.onClick = this.onClick.bind(this);
     }
+
     async componentDidMount() {
         //Don't have to specify from property with MetaMask inside call
         const manager = await lottery.methods.manager().call();
@@ -26,8 +30,6 @@ class App extends Component {
             players,
             balance
         });
-
-        this.onSubmit = this.onSubmit.bind(this);
     }
 
     async onSubmit(e) {
@@ -46,6 +48,24 @@ class App extends Component {
             });
 
             this.setState({ message: "You have been entered!" });
+        } catch (e) {
+            console.log(e);
+        }
+    }
+
+    async onClick() {
+        try {
+            //Grab all the accounts from metamask
+            const accounts = await web3.eth.getAccounts();
+
+            this.setState({ message: "Choosing a winner..." });
+
+            //Send transaction to enter method with desired account
+            await lottery.methods.pickWinner().send({
+                from: accounts[0]
+            });
+
+            this.setState({ message: "A winner has been picked!" });
         } catch (e) {
             console.log(e);
         }
@@ -101,7 +121,10 @@ class App extends Component {
                     <button>Enter</button>
                 </form>
                 <hr />
-                <h3>{this.state.message}</h3>
+                <h4>Ready to pick a winner?</h4>
+                <button onClick={this.onClick}>Pick Winner</button>
+                <hr />
+                <h5>{this.state.message}</h5>
             </div>
         );
     }
