@@ -11,7 +11,8 @@ class App extends Component {
             manager: "",
             players: [],
             balance: "",
-            value: ""
+            value: "",
+            message: ""
         };
     }
     async componentDidMount() {
@@ -25,6 +26,29 @@ class App extends Component {
             players,
             balance
         });
+
+        this.onSubmit = this.onSubmit.bind(this);
+    }
+
+    async onSubmit(e) {
+        e.preventDefault();
+
+        try {
+            //Grab all the accounts from metamask
+            const accounts = await web3.eth.getAccounts();
+
+            this.setState({ message: "Waiting on transaction success..." });
+
+            //Send transaction to enter method with desired account
+            await lottery.methods.enter().send({
+                from: accounts[0],
+                value: web3.utils.toWei(this.state.value, "ether")
+            });
+
+            this.setState({ message: "You have been entered!" });
+        } catch (e) {
+            console.log(e);
+        }
     }
 
     render() {
@@ -63,7 +87,7 @@ class App extends Component {
                     {web3.utils.fromWei(this.state.balance, "ether")} ether.
                 </p>
                 <hr />
-                <form>
+                <form onSubmit={this.onSubmit}>
                     <h4>Want to try your luck?</h4>
                     <div>
                         <label>Amount of ether to enter</label>{" "}
@@ -76,6 +100,8 @@ class App extends Component {
                     </div>
                     <button>Enter</button>
                 </form>
+                <hr />
+                <h3>{this.state.message}</h3>
             </div>
         );
     }
